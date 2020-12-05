@@ -1,6 +1,8 @@
 package ipranger
 
-import "math"
+import (
+	"math"
+)
 
 // Implemented from masscan
 
@@ -20,6 +22,10 @@ func NewBlackRock(rangez, seed int64) *BlackRock {
 	blackrock.Range = rangez
 	blackrock.A = split - 1
 	blackrock.B = split + 1
+
+	if blackrock.A == 0 {
+		blackrock.A++
+	}
 
 	for blackrock.A*blackrock.B <= rangez {
 		blackrock.B++
