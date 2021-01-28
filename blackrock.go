@@ -23,8 +23,8 @@ func NewBlackRock(rangez, seed int64) *BlackRock {
 	blackrock.A = split - 1
 	blackrock.B = split + 1
 
-	if blackrock.A == 0 {
-		blackrock.A++
+	if blackrock.A <= 0 {
+		blackrock.A = 1
 	}
 
 	for blackrock.A*blackrock.B <= rangez {
