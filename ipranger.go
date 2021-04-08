@@ -78,13 +78,15 @@ func (ir *IPRanger) Delete(ipcidr string) error {
 }
 
 func (ir *IPRanger) Exclude(ipcidr string) error {
-	if !ir.IsExcluded(ipcidr) {
+	if IsIP(ipcidr) && ir.IsExcluded(ipcidr) {
 		return nil
 	}
+
 	// if it's an ip convert it to cidr representation
 	if IsIP(ipcidr) {
 		ipcidr += singleIPSuffix
 	}
+
 	// Check if it's a cidr
 	_, network, err := net.ParseCIDR(ipcidr)
 	if err != nil {
@@ -114,7 +116,7 @@ func (ir *IPRanger) CountExcludedIps() int {
 
 func (ir *IPRanger) IsExcluded(ipcidr string) bool {
 	contains, err := ir.RangerExclude.Contains(net.ParseIP(ipcidr))
-	return contains && err != nil
+	return contains || err != nil
 }
 
 func (ir *IPRanger) ContainsSkipExclude(ipcidr string) bool {
