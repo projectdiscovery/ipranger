@@ -2,25 +2,24 @@ package ipranger
 
 import (
 	"bytes"
+	"errors"
 	"net"
 	"strings"
+	"sync/atomic"
 
 	"github.com/projectdiscovery/hmap/store/hybrid"
+	"github.com/projectdiscovery/iputil"
 	"github.com/projectdiscovery/mapcidr"
+	"github.com/projectdiscovery/networkpolicy"
 	"github.com/yl2chen/cidranger"
 )
 
-const (
-	singleIPSuffix = "/32"
-)
-
 type IPRanger struct {
-	TotalIps        uint64
-	Ranger          cidranger.Ranger
-	TotalExcludeIps uint64
-	RangerExclude   cidranger.Ranger
-	TotalFqdn       uint64
-	Targets         *hybrid.HybridMap
+	Np                *networkpolicy.NetworkPolicy
+	iprangerop        cidranger.Ranger
+	Hosts             *hybrid.HybridMap
+	Stats             Stats
+	CoalescedHostList []*net.IPNet
 }
 
 func New() (*IPRanger, error) {
@@ -28,137 +27,152 @@ func New() (*IPRanger, error) {
 	if err != nil {
 		return nil, err
 	}
-	rangerIn := cidranger.NewPCTrieRanger()
-	rangerExclude := cidranger.NewPCTrieRanger()
+	var np networkpolicy.NetworkPolicy
 
-	return &IPRanger{Ranger: rangerIn, RangerExclude: rangerExclude, Targets: hm}, nil
+	return &IPRanger{Np: &np, iprangerop: cidranger.NewPCTrieRanger(), Hosts: hm}, nil
 }
 
-func (ir *IPRanger) Add(ipcidr string) error {
-	if ir.Contains(ipcidr) {
-		return nil
+func (ir *IPRanger) Contains(host string) bool {
+	// not valid => not contained
+	if ir.Np.Validate(host) {
+		return false
+	}
+
+	// ip => check internal ip ranger
+	if iputil.IsIP(host) {
+		if ok, err := ir.iprangerop.Contains(net.ParseIP(host)); err == nil {
+			return ok
+		}
+	}
+
+	// fqdn, cidr => considered as new
+	return false
+}
+
+func (ir *IPRanger) Add(host string) error {
+	// skip invalid
+	if ir.Np.Validate(host) {
+		return errors.New("invalid host")
+	}
+
+	// skip already contained
+	if ir.Contains(host) {
+		return errors.New("host already added")
 	}
 
 	// if it's an ip convert it to cidr representation
-	if IsIP(ipcidr) {
-		ipcidr += singleIPSuffix
-	}
-	// Check if it's a cidr
-	_, network, err := net.ParseCIDR(ipcidr)
-	if err != nil {
-		return err
+	if iputil.IsIP(host) || iputil.IsCIDR(host) {
+		return ir.add(host)
 	}
 
-	ir.TotalIps += mapcidr.AddressCountIpnet(network)
-
-	return ir.Ranger.Insert(cidranger.NewBasicRangerEntry(*network))
+	return errors.New("only ip/cidr can be added")
 }
 
-func (ir *IPRanger) AddIPNet(network *net.IPNet) error {
-	ir.TotalIps += mapcidr.AddressCountIpnet(network)
+func (ir *IPRanger) add(IP string) error {
+	var network *net.IPNet
+	if iputil.IsIPv4(IP) {
+		network = iputil.AsIPV4CIDR(IP)
+	}
 
-	return ir.Ranger.Insert(cidranger.NewBasicRangerEntry(*network))
+	atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(network))
+
+	return ir.iprangerop.Insert(cidranger.NewBasicRangerEntry(*network))
 }
 
-func (ir *IPRanger) Delete(ipcidr string) error {
+func (ir *IPRanger) IsValid(host string) bool {
+	return ir.Np.Validate(host)
+}
+
+func (ir *IPRanger) Delete(host string) error {
+	// skip invalid
+	if ir.Np.Validate(host) {
+		return errors.New("invalid host")
+	}
+
+	// skip already contained
+	if !ir.Contains(host) {
+		return errors.New("host not contained")
+	}
+
 	// if it's an ip convert it to cidr representation
-	if IsIP(ipcidr) {
-		ipcidr += singleIPSuffix
-	}
-	// Check if it's a cidr
-	_, network, err := net.ParseCIDR(ipcidr)
-	if err != nil {
-		return err
+	if iputil.IsIP(host) || iputil.IsCIDR(host) {
+		return ir.delete(host)
 	}
 
-	ir.TotalIps -= mapcidr.AddressCountIpnet(network)
+	return errors.New("only ip or cidr supported")
+}
 
-	_, err = ir.Ranger.Remove(*network)
+func (ir *IPRanger) delete(host string) error {
+	var network *net.IPNet
+	if iputil.IsIPv4(host) {
+		network = iputil.AsIPV4CIDR(host)
+	}
+
+	atomic.AddUint64(&ir.Stats.IPS, -mapcidr.AddressCountIpnet(network))
+	_, err := ir.iprangerop.Remove(*network)
+
 	return err
 }
 
-func (ir *IPRanger) Exclude(ipcidr string) error {
-	if !ir.IsExcluded(ipcidr) {
-		return nil
+func (ir *IPRanger) AddHostWithMetadata(ipcidr, metadata string) error {
+	if !ir.IsValid(ipcidr) {
+		return errors.New("invalid item")
 	}
-	// if it's an ip convert it to cidr representation
-	if IsIP(ipcidr) {
-		ipcidr += singleIPSuffix
-	}
-	// Check if it's a cidr
-	_, network, err := net.ParseCIDR(ipcidr)
-	if err != nil {
-		return err
-	}
-
-	ir.TotalExcludeIps += mapcidr.AddressCountIpnet(network)
-
-	return ir.RangerExclude.Insert(cidranger.NewBasicRangerEntry(*network))
-}
-
-func (ir *IPRanger) Len() int {
-	return ir.Ranger.Len()
-}
-
-func (ir *IPRanger) LenExclude() int {
-	return ir.RangerExclude.Len()
-}
-
-func (ir *IPRanger) CountIPS() int {
-	return int(ir.TotalIps)
-}
-
-func (ir *IPRanger) CountExcludedIps() int {
-	return int(ir.TotalExcludeIps)
-}
-
-func (ir *IPRanger) IsExcluded(ipcidr string) bool {
-	contains, err := ir.RangerExclude.Contains(net.ParseIP(ipcidr))
-	return contains && err != nil
-}
-
-func (ir *IPRanger) ContainsSkipExclude(ipcidr string) bool {
-	contains, err := ir.Ranger.Contains(net.ParseIP(ipcidr))
-	return contains && err == nil
-}
-
-func (ir *IPRanger) Contains(ipcidr string) bool {
-	return !ir.IsExcluded(ipcidr) && ir.ContainsSkipExclude(ipcidr)
-}
-
-func (ir *IPRanger) AddFqdn(ip, fqdn string) error {
+	// cache ip/cidr
+	ir.Add(ipcidr)
 	// dedupe all the hosts and also keep track of ip => host for the output - just append new hostname
-	if data, ok := ir.Targets.Get(ip); ok {
+	if data, ok := ir.Hosts.Get(ipcidr); ok {
 		// check if fqdn not contained
-		if !bytes.Contains(data, []byte(fqdn)) {
-			fqdns := strings.Split(string(data), ",")
-			fqdns = append(fqdns, fqdn)
-			return ir.Targets.Set(ip, []byte(strings.Join(fqdns, ",")))
+		if !bytes.Contains(data, []byte(metadata)) {
+			hosts := strings.Split(string(data), ",")
+			hosts = append(hosts, metadata)
+			atomic.AddUint64(&ir.Stats.Hosts, 1)
+			return ir.Hosts.Set(ipcidr, []byte(strings.Join(hosts, ",")))
 		}
-		// fqdn already contained
+		// host already contained
 		return nil
 	}
 
-	ir.TotalFqdn++
-
-	return ir.Targets.Set(ip, []byte(fqdn))
+	atomic.AddUint64(&ir.Stats.Hosts, 1)
+	return ir.Hosts.Set(ipcidr, []byte(metadata))
 }
 
-func (ir *IPRanger) HasIP(ip string) bool {
-	_, ok := ir.Targets.Get(ip)
+func (ir *IPRanger) HasIP(IP string) bool {
+	_, ok := ir.Hosts.Get(IP)
 	return ok
 }
 
-func (ir *IPRanger) GetFQDNByIP(ip string) ([]string, error) {
-	dt, ok := ir.Targets.Get(ip)
+func (ir *IPRanger) GetHostsByIP(IP string) ([]string, error) {
+	dt, ok := ir.Hosts.Get(IP)
 	if ok {
 		return strings.Split(string(dt), ","), nil
 	}
 
 	// if not found return the ip
-	return []string{ip}, nil
+	return []string{IP}, nil
 }
 
 func (ir *IPRanger) Close() error {
-	return ir.Targets.Close()
+	return ir.Hosts.Close()
+}
+
+func (ir *IPRanger) Shrink() error {
+	// shrink all the cidrs and ips (ipv4)
+	var items []*net.IPNet
+	ir.Hosts.Scan(func(item, _ []byte) error {
+		items = append(items, iputil.AsIPV4CIDR(string(item)))
+		return nil
+	})
+	ir.CoalescedHostList, _ = mapcidr.CoalesceCIDRs(items)
+	// reset the internal ranger with the new data
+	ir.iprangerop = cidranger.NewPCTrieRanger()
+	atomic.StoreUint64(&ir.Stats.IPS, 0)
+	for _, item := range ir.CoalescedHostList {
+		err := ir.iprangerop.Insert(cidranger.NewBasicRangerEntry(*item))
+		if err != nil {
+			return err
+		}
+		atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(item))
+	}
+	return nil
 }
