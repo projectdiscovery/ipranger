@@ -69,7 +69,7 @@ func (ir *IPRanger) Add(host string) error {
 
 func (ir *IPRanger) add(host string) error {
 	if iputil.IsIPv4(host) {
-		host = iputil.AsIPV6CIDR(host)
+		host = iputil.AsIPV4CIDR(host).String()
 	}
 	_, network, err := net.ParseCIDR(host)
 	if err != nil {
@@ -155,7 +155,7 @@ func (ir *IPRanger) Shrink() error {
 	// shrink all the cidrs and ips (ipv4)
 	var items []*net.IPNet
 	ir.Hosts.Scan(func(item, _ []byte) error {
-		items = append(items, iputil.AsIPV4IpNet(string(item)))
+		items = append(items, iputil.AsIPV4CIDR(string(item)))
 		return nil
 	})
 	ir.CoalescedHostList, _ = mapcidr.CoalesceCIDRs(items)
