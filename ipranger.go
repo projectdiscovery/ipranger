@@ -1,7 +1,6 @@
 package ipranger
 
 import (
-	"bytes"
 	"errors"
 	"net"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/projectdiscovery/iputil"
 	"github.com/projectdiscovery/mapcidr"
 	"github.com/projectdiscovery/networkpolicy"
+	"github.com/projectdiscovery/stringsutil"
 	"github.com/yl2chen/cidranger"
 )
 
@@ -114,27 +114,29 @@ func (ir *IPRanger) delete(host string) error {
 	return err
 }
 
-func (ir *IPRanger) AddHostWithMetadata(ipcidr, metadata string) error {
-	if !ir.IsValid(ipcidr) {
-		return errors.New("invalid item")
+func (ir *IPRanger) AddHostWithMetadata(host, metadata string) error {
+	if !ir.IsValid(host) {
+		return errors.New("invalid host with metadata")
 	}
 	// cache ip/cidr
-	ir.Add(ipcidr)
+	ir.Add(host)
 	// dedupe all the hosts and also keep track of ip => host for the output - just append new hostname
-	if data, ok := ir.Hosts.Get(ipcidr); ok {
+	if data, ok := ir.Hosts.Get(host); ok {
 		// check if fqdn not contained
-		if !bytes.Contains(data, []byte(metadata)) {
+		// THIS IS THE ISSUE AS TOP LEVEL DOMAINS ARE CONTAINED IN ANY SUBDOMAIN AND SKIPPED FROM OUTPUT
+		datas := string(data)
+		if datas != metadata && !stringsutil.ContainsAny(datas, metadata+",", ","+metadata+",", ","+metadata) {
 			hosts := strings.Split(string(data), ",")
 			hosts = append(hosts, metadata)
 			atomic.AddUint64(&ir.Stats.Hosts, 1)
-			return ir.Hosts.Set(ipcidr, []byte(strings.Join(hosts, ",")))
+			return ir.Hosts.Set(host, []byte(strings.Join(hosts, ",")))
 		}
 		// host already contained
 		return nil
 	}
 
 	atomic.AddUint64(&ir.Stats.Hosts, 1)
-	return ir.Hosts.Set(ipcidr, []byte(metadata))
+	return ir.Hosts.Set(host, []byte(metadata))
 }
 
 func (ir *IPRanger) HasIP(IP string) bool {
