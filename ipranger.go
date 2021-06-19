@@ -34,7 +34,7 @@ func New() (*IPRanger, error) {
 
 func (ir *IPRanger) Contains(host string) bool {
 	// not valid => not contained
-	if ir.Np.Validate(host) {
+	if !ir.Np.Validate(host) {
 		return false
 	}
 
@@ -51,7 +51,7 @@ func (ir *IPRanger) Contains(host string) bool {
 
 func (ir *IPRanger) Add(host string) error {
 	// skip invalid
-	if ir.Np.Validate(host) {
+	if !ir.Np.Validate(host) {
 		return errors.New("invalid host")
 	}
 
@@ -134,7 +134,6 @@ func (ir *IPRanger) AddHostWithMetadata(host, metadata string) error {
 		// host already contained
 		return nil
 	}
-
 	atomic.AddUint64(&ir.Stats.Hosts, 1)
 	return ir.Hosts.Set(host, []byte(metadata))
 }
