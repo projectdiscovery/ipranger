@@ -70,7 +70,7 @@ func (ir *IPRanger) Add(host string) error {
 
 func (ir *IPRanger) add(IP string) error {
 	var network *net.IPNet
-	if iputil.IsIPv4(IP) {
+	if iputil.IsIPv4(IP) || iputil.IsCIDR(IP) {
 		network = iputil.AsIPV4CIDR(IP)
 	}
 
