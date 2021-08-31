@@ -71,7 +71,7 @@ func (ir *IPRanger) Add(host string) error {
 func (ir *IPRanger) add(IP string) error {
 	var network *net.IPNet
 	if iputil.IsIPv4(IP) || iputil.IsCIDR(IP) {
-		network = iputil.AsIPV4CIDR(IP)
+		network = iputil.AsIPV4IpNet(IP)
 	}
 
 	atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(network))
@@ -104,8 +104,8 @@ func (ir *IPRanger) Delete(host string) error {
 
 func (ir *IPRanger) delete(host string) error {
 	var network *net.IPNet
-	if iputil.IsIPv4(host) {
-		network = iputil.AsIPV4CIDR(host)
+	if iputil.IsIPv4(host) || iputil.IsCIDR(host) {
+		network = iputil.AsIPV4IpNet(host)
 	}
 
 	atomic.AddUint64(&ir.Stats.IPS, -mapcidr.AddressCountIpnet(network))
@@ -161,7 +161,7 @@ func (ir *IPRanger) Shrink() error {
 	// shrink all the cidrs and ips (ipv4)
 	var items []*net.IPNet
 	ir.Hosts.Scan(func(item, _ []byte) error {
-		items = append(items, iputil.AsIPV4CIDR(string(item)))
+		items = append(items, iputil.AsIPV4IpNet(string(item)))
 		return nil
 	})
 	ir.CoalescedHostList, _ = mapcidr.CoalesceCIDRs(items)
