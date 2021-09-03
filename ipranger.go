@@ -1,7 +1,6 @@
 package ipranger
 
 import (
-	"bytes"
 	"errors"
 	"net"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/projectdiscovery/iputil"
 	"github.com/projectdiscovery/mapcidr"
 	"github.com/projectdiscovery/networkpolicy"
+	"github.com/projectdiscovery/stringsutil"
 	"github.com/yl2chen/cidranger"
 )
 
@@ -33,6 +33,11 @@ func New() (*IPRanger, error) {
 }
 
 func (ir *IPRanger) Contains(host string) bool {
+	// not valid => not contained
+	if !ir.Np.Validate(host) {
+		return false
+	}
+
 	// ip => check internal ip ranger
 	if iputil.IsIP(host) {
 		if ok, err := ir.iprangerop.Contains(net.ParseIP(host)); err == nil {
@@ -46,6 +51,11 @@ func (ir *IPRanger) Contains(host string) bool {
 }
 
 func (ir *IPRanger) Add(host string) error {
+	// skip invalid
+	if !ir.Np.Validate(host) {
+		return errors.New("invalid host")
+	}
+
 	// skip already contained
 	if ir.Contains(host) {
 		return errors.New("host already added")
@@ -68,12 +78,9 @@ func (ir *IPRanger) Add(host string) error {
 }
 
 func (ir *IPRanger) add(host string) error {
-	if iputil.IsIPv4(host) {
-		host = iputil.AsIPV4CIDR(host).String()
-	}
-	_, network, err := net.ParseCIDR(host)
-	if err != nil {
-		return err
+	var network *net.IPNet
+	if iputil.IsIPv4(host) || iputil.IsCIDR(host) {
+		network = iputil.AsIPV4IpNet(IP)
 	}
 
 	atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(network))
@@ -95,16 +102,13 @@ func (ir *IPRanger) Delete(host string) error {
 }
 
 func (ir *IPRanger) delete(host string) error {
-	if iputil.IsIPv4(host) {
-		host = iputil.AsIPV6CIDR(host)
-	}
-	_, network, err := net.ParseCIDR(host)
-	if err != nil {
-		return err
+	var network *net.IPNet
+	if iputil.IsIPv4(host) || iputil.IsCIDR(host) {
+		network = iputil.AsIPV4IpNet(host)
 	}
 
 	atomic.AddUint64(&ir.Stats.IPS, -mapcidr.AddressCountIpnet(network))
-	_, err = ir.iprangerop.Remove(*network)
+	_, err := ir.iprangerop.Remove(*network)
 
 	return err
 }
@@ -118,7 +122,9 @@ func (ir *IPRanger) AddHostWithMetadata(host, metadata string) error {
 	// dedupe all the hosts and also keep track of ip => host for the output - just append new hostname
 	if data, ok := ir.Hosts.Get(host); ok {
 		// check if fqdn not contained
-		if !bytes.Contains(data, []byte(metadata)) {
+		// THIS IS THE ISSUE AS TOP LEVEL DOMAINS ARE CONTAINED IN ANY SUBDOMAIN AND SKIPPED FROM OUTPUT
+		datas := string(data)
+		if datas != metadata && !stringsutil.ContainsAny(datas, metadata+",", ","+metadata+",", ","+metadata) {
 			hosts := strings.Split(string(data), ",")
 			hosts = append(hosts, metadata)
 			atomic.AddUint64(&ir.Stats.Hosts, 1)
@@ -127,7 +133,6 @@ func (ir *IPRanger) AddHostWithMetadata(host, metadata string) error {
 		// host already contained
 		return nil
 	}
-
 	atomic.AddUint64(&ir.Stats.Hosts, 1)
 	return ir.Hosts.Set(host, []byte(metadata))
 }
@@ -155,7 +160,7 @@ func (ir *IPRanger) Shrink() error {
 	// shrink all the cidrs and ips (ipv4)
 	var items []*net.IPNet
 	ir.Hosts.Scan(func(item, _ []byte) error {
-		items = append(items, iputil.AsIPV4CIDR(string(item)))
+		items = append(items, iputil.AsIPV4IpNet(string(item)))
 		return nil
 	})
 	ir.CoalescedHostList, _ = mapcidr.CoalesceCIDRs(items)
