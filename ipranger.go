@@ -45,8 +45,9 @@ func (ir *IPRanger) Contains(host string) bool {
 		}
 	}
 
-	// fqdn, cidr => considered as new
-	return false
+	// fqdn, cidr => check hmap
+	_, ok := ir.Hosts.Get(host)
+	return ok
 }
 
 func (ir *IPRanger) Add(host string) error {
@@ -60,17 +61,25 @@ func (ir *IPRanger) Add(host string) error {
 		return errors.New("host already added")
 	}
 
-	// if it's an ip convert it to cidr representation
-	if iputil.IsIP(host) || iputil.IsCIDR(host) {
+	// ips: valid + new => add
+	if iputil.IsIP(host) {
+		if ir.Np.Validate(host) {
+			return ir.add(host)
+		}
+		return errors.New("invalid ip")
+	}
+
+	// cidrs => add
+	if iputil.IsCIDR(host) {
 		return ir.add(host)
 	}
 
 	return errors.New("only ip/cidr can be added")
 }
 
-func (ir *IPRanger) add(IP string) error {
+func (ir *IPRanger) add(host string) error {
 	var network *net.IPNet
-	if iputil.IsIPv4(IP) || iputil.IsCIDR(IP) {
+	if iputil.IsIPv4(host) || iputil.IsCIDR(host) {
 		network = iputil.AsIPV4IpNet(IP)
 	}
 
@@ -84,16 +93,6 @@ func (ir *IPRanger) IsValid(host string) bool {
 }
 
 func (ir *IPRanger) Delete(host string) error {
-	// skip invalid
-	if ir.Np.Validate(host) {
-		return errors.New("invalid host")
-	}
-
-	// skip already contained
-	if !ir.Contains(host) {
-		return errors.New("host not contained")
-	}
-
 	// if it's an ip convert it to cidr representation
 	if iputil.IsIP(host) || iputil.IsCIDR(host) {
 		return ir.delete(host)
