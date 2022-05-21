@@ -80,7 +80,7 @@ func (ir *IPRanger) Add(host string) error {
 func (ir *IPRanger) add(host string) error {
 	var network *net.IPNet
 	if iputil.IsIPv4(host) || iputil.IsCIDR(host) {
-		network = iputil.AsIPV4IpNet(IP)
+		network = iputil.AsIPV4IpNet(host)
 	}
 
 	atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(network))
@@ -118,11 +118,10 @@ func (ir *IPRanger) AddHostWithMetadata(host, metadata string) error {
 		return errors.New("invalid host with metadata")
 	}
 	// cache ip/cidr
-	ir.Add(host)
+	_ = ir.Add(host)
 	// dedupe all the hosts and also keep track of ip => host for the output - just append new hostname
 	if data, ok := ir.Hosts.Get(host); ok {
 		// check if fqdn not contained
-		// THIS IS THE ISSUE AS TOP LEVEL DOMAINS ARE CONTAINED IN ANY SUBDOMAIN AND SKIPPED FROM OUTPUT
 		datas := string(data)
 		if datas != metadata && !stringsutil.ContainsAny(datas, metadata+",", ","+metadata+",", ","+metadata) {
 			hosts := strings.Split(string(data), ",")
