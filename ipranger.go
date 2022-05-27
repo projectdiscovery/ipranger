@@ -80,7 +80,7 @@ func (ir *IPRanger) Add(host string) error {
 func (ir *IPRanger) add(host string) error {
 	var network *net.IPNet
 	if iputil.IsIPv4(host) || iputil.IsCIDR(host) {
-		network = iputil.AsIPV4IpNet(IP)
+		network = iputil.AsIPV4IpNet(host)
 	}
 
 	atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(network))
