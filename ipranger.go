@@ -15,11 +15,12 @@ import (
 )
 
 type IPRanger struct {
-	Np                *networkpolicy.NetworkPolicy
-	iprangerop        cidranger.Ranger
-	Hosts             *hybrid.HybridMap
-	Stats             Stats
-	CoalescedHostList []*net.IPNet
+	Np            *networkpolicy.NetworkPolicy
+	iprangerop    cidranger.Ranger
+	Hosts         *hybrid.HybridMap
+	Stats         Stats
+	CoalescedIPV4 []*net.IPNet
+	CoalescedIPV6 []*net.IPNet
 }
 
 func New() (*IPRanger, error) {
@@ -30,6 +31,24 @@ func New() (*IPRanger, error) {
 	var np networkpolicy.NetworkPolicy
 
 	return &IPRanger{Np: &np, iprangerop: cidranger.NewPCTrieRanger(), Hosts: hm}, nil
+}
+
+func (ir *IPRanger) ContainsAll(hosts ...string) bool {
+	for _, host := range hosts {
+		if !ir.Contains(host) {
+			return false
+		}
+	}
+	return true
+}
+
+func (ir *IPRanger) ContainsAny(hosts ...string) bool {
+	for _, host := range hosts {
+		if ir.Contains(host) {
+			return true
+		}
+	}
+	return false
 }
 
 func (ir *IPRanger) Contains(host string) bool {
@@ -77,10 +96,29 @@ func (ir *IPRanger) Add(host string) error {
 	return errors.New("only ip/cidr can be added")
 }
 
-func (ir *IPRanger) add(host string) error {
-	var network *net.IPNet
-	if iputil.IsIPv4(host) || iputil.IsCIDR(host) {
+func (ir *IPRanger) asIPNet(host string) (*net.IPNet, error) {
+	var (
+		network *net.IPNet
+		err     error
+	)
+	switch {
+	case iputil.IsCIDR(host):
+		_, network, err = net.ParseCIDR(host)
+	case iputil.IsIPv4(host):
 		network = iputil.AsIPV4IpNet(host)
+	case iputil.IsIPv6(host):
+		network = iputil.AsIPV6IpNet(host)
+	default:
+		err = errors.New("unsupported ip/cidr type")
+	}
+
+	return network, err
+}
+
+func (ir *IPRanger) add(host string) error {
+	network, err := ir.asIPNet(host)
+	if err != nil {
+		return err
 	}
 
 	atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(network))
@@ -102,13 +140,13 @@ func (ir *IPRanger) Delete(host string) error {
 }
 
 func (ir *IPRanger) delete(host string) error {
-	var network *net.IPNet
-	if iputil.IsIPv4(host) || iputil.IsCIDR(host) {
-		network = iputil.AsIPV4IpNet(host)
+	network, err := ir.asIPNet(host)
+	if err != nil {
+		return err
 	}
 
 	atomic.AddUint64(&ir.Stats.IPS, -mapcidr.AddressCountIpnet(network))
-	_, err := ir.iprangerop.Remove(*network)
+	_, err = ir.iprangerop.Remove(*network)
 
 	return err
 }
@@ -118,11 +156,10 @@ func (ir *IPRanger) AddHostWithMetadata(host, metadata string) error {
 		return errors.New("invalid host with metadata")
 	}
 	// cache ip/cidr
-	ir.Add(host)
+	_ = ir.Add(host)
 	// dedupe all the hosts and also keep track of ip => host for the output - just append new hostname
 	if data, ok := ir.Hosts.Get(host); ok {
 		// check if fqdn not contained
-		// THIS IS THE ISSUE AS TOP LEVEL DOMAINS ARE CONTAINED IN ANY SUBDOMAIN AND SKIPPED FROM OUTPUT
 		datas := string(data)
 		if datas != metadata && !stringsutil.ContainsAny(datas, metadata+",", ","+metadata+",", ","+metadata) {
 			hosts := strings.Split(string(data), ",")
@@ -160,19 +197,29 @@ func (ir *IPRanger) Shrink() error {
 	// shrink all the cidrs and ips (ipv4)
 	var items []*net.IPNet
 	ir.Hosts.Scan(func(item, _ []byte) error {
-		items = append(items, iputil.AsIPV4IpNet(string(item)))
-		return nil
-	})
-	ir.CoalescedHostList, _ = mapcidr.CoalesceCIDRs(items)
-	// reset the internal ranger with the new data
-	ir.iprangerop = cidranger.NewPCTrieRanger()
-	atomic.StoreUint64(&ir.Stats.IPS, 0)
-	for _, item := range ir.CoalescedHostList {
-		err := ir.iprangerop.Insert(cidranger.NewBasicRangerEntry(*item))
+		ipnet, err := ir.asIPNet(string(item))
 		if err != nil {
 			return err
 		}
-		atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(item))
+		items = append(items, ipnet)
+		return nil
+	})
+	ir.CoalescedIPV4, ir.CoalescedIPV6 = mapcidr.CoalesceCIDRs(items)
+	// reset the internal ranger with the new data
+	ir.iprangerop = cidranger.NewPCTrieRanger()
+	atomic.StoreUint64(&ir.Stats.IPS, 0)
+	return ir.addToTcpTrie(ir.CoalescedIPV4, ir.CoalescedIPV6)
+}
+
+func (ir *IPRanger) addToTcpTrie(coalescedIpGroups ...[]*net.IPNet) error {
+	for _, coalescedIpGroup := range coalescedIpGroups {
+		for _, coalescedIP := range coalescedIpGroup {
+			err := ir.iprangerop.Insert(cidranger.NewBasicRangerEntry(*coalescedIP))
+			if err != nil {
+				return err
+			}
+			atomic.AddUint64(&ir.Stats.IPS, mapcidr.AddressCountIpnet(coalescedIP))
+		}
 	}
 	return nil
 }
