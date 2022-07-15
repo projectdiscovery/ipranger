@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	"github.com/projectdiscovery/hmap/store/hybrid"
@@ -15,6 +16,8 @@ import (
 )
 
 type IPRanger struct {
+	sync.RWMutex
+
 	Np            *networkpolicy.NetworkPolicy
 	iprangerop    cidranger.Ranger
 	Hosts         *hybrid.HybridMap
@@ -52,6 +55,9 @@ func (ir *IPRanger) ContainsAny(hosts ...string) bool {
 }
 
 func (ir *IPRanger) Contains(host string) bool {
+	ir.RLock()
+	defer ir.RUnlock()
+
 	// not valid => not contained
 	if !ir.Np.Validate(host) {
 		return false
@@ -116,6 +122,9 @@ func (ir *IPRanger) asIPNet(host string) (*net.IPNet, error) {
 }
 
 func (ir *IPRanger) add(host string) error {
+	ir.Lock()
+	defer ir.Unlock()
+
 	network, err := ir.asIPNet(host)
 	if err != nil {
 		return err
@@ -140,6 +149,9 @@ func (ir *IPRanger) Delete(host string) error {
 }
 
 func (ir *IPRanger) delete(host string) error {
+	ir.Lock()
+	defer ir.Unlock()
+
 	network, err := ir.asIPNet(host)
 	if err != nil {
 		return err
@@ -212,6 +224,9 @@ func (ir *IPRanger) Shrink() error {
 }
 
 func (ir *IPRanger) addToTcpTrie(coalescedIpGroups ...[]*net.IPNet) error {
+	ir.Lock()
+	defer ir.Unlock()
+
 	for _, coalescedIpGroup := range coalescedIpGroups {
 		for _, coalescedIP := range coalescedIpGroup {
 			err := ir.iprangerop.Insert(cidranger.NewBasicRangerEntry(*coalescedIP))
