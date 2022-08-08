@@ -1,7 +1,6 @@
 module github.com/projectdiscovery/ipranger
 
 go 1.14
-
 require (
 	github.com/projectdiscovery/blackrock v0.0.0-20210903102120-5a9d2412d21d // indirect
 	github.com/projectdiscovery/hmap v0.0.1
