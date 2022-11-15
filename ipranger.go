@@ -8,10 +8,10 @@ import (
 	"sync/atomic"
 
 	"github.com/projectdiscovery/hmap/store/hybrid"
-	"github.com/projectdiscovery/iputil"
 	"github.com/projectdiscovery/mapcidr"
 	"github.com/projectdiscovery/networkpolicy"
-	"github.com/projectdiscovery/stringsutil"
+	iputil "github.com/projectdiscovery/utils/ip"
+	stringsutil "github.com/projectdiscovery/utils/strings"
 	"github.com/yl2chen/cidranger"
 )
 
