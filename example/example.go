@@ -27,5 +27,9 @@ func main() {
 	}
 	fmt.Printf("%+v\n", iprange.Stats)
 
-	fmt.Printf("%+v\n", iprange)
+	ips, err := ipranger.Ips("192.168.1.1/16")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(len(ips))
 }
