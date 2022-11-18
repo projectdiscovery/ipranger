@@ -11,7 +11,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = iprange.Add("192.168.1.1")
+	err = iprange.Add("153.168.3.36")
 	if err != nil {
 		panic(err)
 	}
@@ -27,7 +27,7 @@ func main() {
 	}
 	fmt.Printf("%+v\n", iprange.Stats)
 
-	ips, err := ipranger.Ips("192.168.1.1/16")
+	ips, err := ipranger.Ips("153.168.3.36/16")
 	if err != nil {
 		panic(err)
 	}
