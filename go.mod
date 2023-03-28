@@ -1,6 +1,6 @@
 module github.com/projectdiscovery/ipranger
 
-go 1.18
+go 1.19
 
 require (
 	github.com/projectdiscovery/hmap v0.0.11
