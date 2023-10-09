@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/projectdiscovery/hmap v0.0.21
-	github.com/projectdiscovery/mapcidr v1.1.10
+	github.com/projectdiscovery/mapcidr v1.1.11
 	github.com/projectdiscovery/networkpolicy v0.0.6
 	github.com/projectdiscovery/utils v0.0.57
 	github.com/yl2chen/cidranger v1.0.2
