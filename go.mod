@@ -6,7 +6,7 @@ require (
 	github.com/projectdiscovery/hmap v0.0.23
 	github.com/projectdiscovery/mapcidr v1.1.13
 	github.com/projectdiscovery/networkpolicy v0.0.6
-	github.com/projectdiscovery/utils v0.0.58
+	github.com/projectdiscovery/utils v0.0.60
 	github.com/yl2chen/cidranger v1.0.2
 )
 
@@ -14,11 +14,11 @@ require (
 	github.com/akrylysov/pogreb v0.10.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.25 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/projectdiscovery/blackrock v0.0.1 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
