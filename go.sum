@@ -48,8 +48,8 @@ github.com/projectdiscovery/mapcidr v1.1.16 h1:rjj1w5D6hbTsUQXYClLcGdfBEy9bryclg
 github.com/projectdiscovery/mapcidr v1.1.16/go.mod h1:rGqpBhStdwOQ2uS62QM9qPsybwMwIhT7CTd2bxoHs8Q=
 github.com/projectdiscovery/networkpolicy v0.0.8 h1:XvfBaBwSDNTesSfNQP9VLk3HX9I7x7gHm028TJ5XwI8=
 github.com/projectdiscovery/networkpolicy v0.0.8/go.mod h1:xnjNqhemxUPxU+UD5Jgsc3+K8IVmcqT1SJeo6UzMtkI=
-github.com/projectdiscovery/utils v0.0.85 h1:JpCVc9GJwJLNHy1MBPmAHJcE6rs7bRv72Trb3u84OHE=
-github.com/projectdiscovery/utils v0.0.85/go.mod h1:ttiPgS2LmLFd+VRBUdgfLKMMdrF98zX7z5W+K71MX40=
+github.com/projectdiscovery/utils v0.0.87 h1:9+RiTEhpUB/vk6XJUVpysNWJ2aCTD7WuyoyAcNnbIzk=
+github.com/projectdiscovery/utils v0.0.87/go.mod h1:jGK450sL9AVDTjaPwEs9za8NVeEC9xE97IWNoK138kI=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/rogpeppe/go-internal v1.10.0 h1:TMyTOH3F/DB16zRVcYyreMH6GnZZrwQVAoYjRBZyWFQ=
 github.com/rogpeppe/go-internal v1.10.0/go.mod h1:UQnix2H7Ngw/k4C5ijL5+65zddjncjaFoBhdsK/akog=
