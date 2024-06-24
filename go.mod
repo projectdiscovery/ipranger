@@ -3,7 +3,7 @@ module github.com/projectdiscovery/ipranger
 go 1.19
 
 require (
-	github.com/projectdiscovery/hmap v0.0.47
+	github.com/projectdiscovery/hmap v0.0.48
 	github.com/projectdiscovery/mapcidr v1.1.34
 	github.com/projectdiscovery/networkpolicy v0.0.8
 	github.com/projectdiscovery/utils v0.1.4
