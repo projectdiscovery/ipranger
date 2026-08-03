@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/projectdiscovery/hmap v0.0.101
 	github.com/projectdiscovery/mapcidr v1.1.97
-	github.com/projectdiscovery/networkpolicy v0.1.43
+	github.com/projectdiscovery/networkpolicy v0.1.44
 	github.com/projectdiscovery/utils v0.11.1
 	github.com/yl2chen/cidranger v1.0.2
 )
@@ -15,7 +15,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/gaissmai/bart v0.28.1 // indirect
+	github.com/gaissmai/bart v0.29.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
