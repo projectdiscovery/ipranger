@@ -15,8 +15,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8Yc
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.6.0 h1:n+5WquG0fcWoWp6xPWfHdbskMCQaFnG6PfBrh1Ky4HY=
 github.com/fsnotify/fsnotify v1.6.0/go.mod h1:sl3t1tCWJFWoRz9R8WJCbQihKKwmorjAbSClcnxKAGw=
-github.com/gaissmai/bart v0.28.1 h1:1YhWqAcQaFklvhRd8x0FHA9qUCmArfqEwaORVkV2s6k=
-github.com/gaissmai/bart v0.28.1/go.mod h1:GREWQfTLRWz/c5FTOsIw+KkscuFkIV5t8Rp7Nd1Td5c=
+github.com/gaissmai/bart v0.29.0 h1:wO6HGE8g9YE0Wm0bCpYxwRzfQ4+fbJKOhL64e5ACGCI=
+github.com/gaissmai/bart v0.29.0/go.mod h1:GREWQfTLRWz/c5FTOsIw+KkscuFkIV5t8Rp7Nd1Td5c=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/golang/snappy v0.0.4 h1:yAGX7huGHXlcLOEtBnF4w7FQwA26wojNCwOYAEhLjQM=
@@ -61,8 +61,8 @@ github.com/projectdiscovery/hmap v0.0.101 h1:zXM6YtLmsn8Q0CUUw8QavhqWmiQYwaw+/U6
 github.com/projectdiscovery/hmap v0.0.101/go.mod h1:w6N9/a5H8kvyx53AhtPDUWe5Qq3D6NBDPA23glHpa/Q=
 github.com/projectdiscovery/mapcidr v1.1.97 h1:7FkxNNVXp+m1rIu5Nv/2SrF9k4+LwP8QuWs2puwy+2w=
 github.com/projectdiscovery/mapcidr v1.1.97/go.mod h1:9dgTJh1SP02gYZdpzMjm6vtYFkEHQHoTyaVNvaeJ7lA=
-github.com/projectdiscovery/networkpolicy v0.1.43 h1:USAkEEYilhsN7v917wtFBUf+k8i0LOwJMcdds4HYKMU=
-github.com/projectdiscovery/networkpolicy v0.1.43/go.mod h1:X2qj1V2rrahnWG8SntJBao3FG01eEpdNrIKnQfpzE70=
+github.com/projectdiscovery/networkpolicy v0.1.44 h1:+fnpYNQVH9mYZY7VrsTqdL4YJGVZSA8XLAlRHBMl5QE=
+github.com/projectdiscovery/networkpolicy v0.1.44/go.mod h1:q1KeQiHchXdElScEMWc5mShWNRNoJXI5koRnVaX6Qh8=
 github.com/projectdiscovery/utils v0.11.1 h1:PWj1KjIASxt8icxommH72C0TQqNOvGkcSODRkiq0SQw=
 github.com/projectdiscovery/utils v0.11.1/go.mod h1:yktGrHGk2CTjNiccXovnvGrLHX9sV2bqz9nSnbA3V8M=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
