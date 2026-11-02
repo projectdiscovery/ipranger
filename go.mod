@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/projectdiscovery/hmap v0.0.104
 	github.com/projectdiscovery/mapcidr v1.1.97
-	github.com/projectdiscovery/networkpolicy v0.1.55
+	github.com/projectdiscovery/networkpolicy v0.1.57
 	github.com/projectdiscovery/utils v0.11.10
 	github.com/yl2chen/cidranger v1.0.2
 )
