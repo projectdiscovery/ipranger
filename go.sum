@@ -47,8 +47,8 @@ github.com/projectdiscovery/hmap v0.0.104 h1:38j4A2gttI48tI5MrdRV2ZTH3SWEysoSYeD
 github.com/projectdiscovery/hmap v0.0.104/go.mod h1:koGp3dcpH+BNj/9JuoZnXhbRfAiZrgIiCzsiBCtSIFs=
 github.com/projectdiscovery/mapcidr v1.1.97 h1:7FkxNNVXp+m1rIu5Nv/2SrF9k4+LwP8QuWs2puwy+2w=
 github.com/projectdiscovery/mapcidr v1.1.97/go.mod h1:9dgTJh1SP02gYZdpzMjm6vtYFkEHQHoTyaVNvaeJ7lA=
-github.com/projectdiscovery/networkpolicy v0.1.57 h1:3P7esW8KE3yoZSE/GvswbSZ1bh8Gk+dURtvNlFzOid0=
-github.com/projectdiscovery/networkpolicy v0.1.57/go.mod h1:Ky0GOIqAL666JBHyHeIsQ5rjkET902I6XjGEpvCVx9s=
+github.com/projectdiscovery/networkpolicy v0.1.58 h1:usZRNmMw5eNacrw0lDENWIz7N7EInVldS1blgH2q94A=
+github.com/projectdiscovery/networkpolicy v0.1.58/go.mod h1:Ky0GOIqAL666JBHyHeIsQ5rjkET902I6XjGEpvCVx9s=
 github.com/projectdiscovery/utils v0.11.13 h1:Mn3/rtyQvtn8XZy0UnVkxbAmn0afbHtWuMHUEztwWSw=
 github.com/projectdiscovery/utils v0.11.13/go.mod h1:TJgsyVjB02CavwZVFzUzPg6YOSJXQxLhL808JCiQKlU=
 github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d h1:hrujxIzL1woJ7AwssoOcM/tq5JjjG2yYOc8odClEiXA=
