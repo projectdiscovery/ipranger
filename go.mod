@@ -3,10 +3,10 @@ module github.com/projectdiscovery/ipranger
 go 1.26.0
 
 require (
-	github.com/projectdiscovery/hmap v0.0.104
+	github.com/projectdiscovery/hmap v0.0.105
 	github.com/projectdiscovery/mapcidr v1.1.97
-	github.com/projectdiscovery/networkpolicy v0.1.58
-	github.com/projectdiscovery/utils v0.11.13
+	github.com/projectdiscovery/networkpolicy v0.1.59
+	github.com/projectdiscovery/utils v0.11.14
 	github.com/yl2chen/cidranger v1.0.2
 )
 
@@ -35,8 +35,8 @@ require (
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
-	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
