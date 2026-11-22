@@ -6,7 +6,7 @@ require (
 	github.com/projectdiscovery/hmap v0.0.105
 	github.com/projectdiscovery/mapcidr v1.1.97
 	github.com/projectdiscovery/networkpolicy v0.1.59
-	github.com/projectdiscovery/utils v0.11.14
+	github.com/projectdiscovery/utils v0.11.15
 	github.com/yl2chen/cidranger v1.0.2
 )
 
